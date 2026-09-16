@@ -118,3 +118,9 @@ font-weight: 400;
 .btns form {
   margin: 0;
 } */
+ #map {
+  height: 400px;
+  width: 100%;
+  border-radius: 15px;
+  margin-bottom: 30px;
+}
