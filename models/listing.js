@@ -24,6 +24,24 @@ const listingSchema = new Schema({
 
   country: String,
 
+  // Categories for Airbnb-style filtering
+  categories: [
+    {
+      type: String,
+      enum: [
+        "Trending",
+        "Rooms",
+        "Iconic Cities",
+        "Mountains",
+        "Castles",
+        "Amazing Pools",
+        "Farms",
+        "Camping",
+        "Arctic"
+      ]
+    }
+  ],
+
   // Coordinates for Map
   geometry: {
     type: {

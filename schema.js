@@ -1,19 +1,50 @@
-const Joi = require('joi');
-//const review = require('./models/review');
+const Joi = require("joi");
+
+// Listing validation
 module.exports.listingSchema = Joi.object({
-    listing : Joi.object({
+
+    listing: Joi.object({
+
         title: Joi.string().required(),
+
         description: Joi.string().required(),
+
         location: Joi.string().required(),
+
         country: Joi.string().required(),
+
         price: Joi.number().required().min(0),
-        image: Joi.string().allow("",null)
+
+        image: Joi.string().allow("", null),
+
+        categories: Joi.array().items(
+            Joi.string().valid(
+                "Trending",
+                "Rooms",
+                "Iconic Cities",
+                "Mountains",
+                "Castles",
+                "Amazing Pools",
+                "Farms",
+                "Camping",
+                "Arctic"
+            )
+        )
+
     }).required()
+
 });
-//for the review //
+
+
+// Review validation
 module.exports.reviewSchema = Joi.object({
-    review:Joi.object({
-rating:Joi.number().required().min(1).max(5),
-comment:Joi.string().required(),
+
+    review: Joi.object({
+
+        rating: Joi.number().required().min(1).max(5),
+
+        comment: Joi.string().required(),
+
     }).required(),
-})
+
+});

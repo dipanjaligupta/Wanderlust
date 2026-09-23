@@ -1,6 +1,77 @@
+<!-- <style>
+  .search-btn {
+    background-color: #fe424d;
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    padding: 0 1rem;
+  }
+
+  .search-btn:hover {
+    background-color: #fe424d;
+    color: #fff;
+    border: none;
+  }
+
+  .search-btn i {
+    display: inline;
+    margin-right: 0.5rem;
+  }
+
+  .search-inp {
+    border-radius: 25px;
+    padding: 0.5rem 3rem;
+    font-size: 1rem;
+  }
+</style> -->
+<style>
+  .search-btn {
+    background-color: #fe424d;
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    padding: 0 1rem;
+    white-space: nowrap;
+  }
+
+  .search-btn:hover {
+    background-color: #fe424d;
+    color: #fff;
+    border: none;
+  }
+
+  .search-btn i {
+    display: inline;
+    margin-right: 0.5rem;
+  }
+
+  .search-inp {
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    width: 300px;
+  }
+
+  .search-form {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+</style>
+
+
 <nav class="navbar navbar-expand-md navbar-light bg-body-light border-bottom sticky-top">
+
   <div class="container-fluid">
-    <a class="navbar-brand" href="/"><i class="fa-regular fa-compass"></i></a>
+
+    <!-- LOGO -->
+    <a class="navbar-brand" href="/listings">
+      <i class="fa-regular fa-compass"></i>
+    </a>
+
+
+    <!-- TOGGLE BUTTON -->
     <button
       class="navbar-toggler"
       type="button"
@@ -9,22 +80,106 @@
     >
       <span class="navbar-toggler-icon"></span>
     </button>
+
+
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+
+      <!-- EXPLORE -->
       <div class="navbar-nav">
-        <a class="nav-link" href="/">Home</a>
-        <a class="nav-link" href="/listings">All Listings</a>
-        <a class="nav-link" href="/listings/new">Add new Listings</a>
+        <a class="nav-link" href="/listings">
+          Explore
+        </a>
       </div>
-     <div class="navbar-nav ms-auto">
-      <% if(!currUser) {  %> 
-        <a class="nav-link" href="/signup">SignUp</a>
-        <a class="nav-link" href="/login">Log in</a>
-      <% } %>
-      <% if(currUser) { %>
-        <a class="nav-link" href="/logout">Logout</a>
-     <% } %>
+
+
+      <!-- SEARCH -->
+      <div class="navbar-nav ms-auto">
+
+        <form
+          action="/listings"
+          method="GET"
+          class="d-flex"
+          id="searchForm"
+        >
+
+          <input
+            class="form-control me-2 search-inp"
+            type="search"
+            name="search"
+             id="searchInput"
+            placeholder="Search destinations"
+            value="<%= typeof search !== 'undefined' ? search : '' %>"
+          >
+
+          <button
+            class="btn search-btn"
+            type="submit"
+          >
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Search
+          </button>
+
+        </form>
+
+      </div>
+
+
+      <!-- RIGHT SIDE LINKS -->
+      <div class="navbar-nav ms-auto">
+
+        <a
+          class="nav-link"
+          href="/listings/new"
+        >
+          Airbnb your home
+        </a>
+
+
+        <% if(!currUser) { %>
+
+          <a
+            class="nav-link"
+            href="/signup"
+          >
+            <b>SignUp</b>
+          </a>
+
+          <a
+            class="nav-link"
+            href="/login"
+          >
+            <b>Log in</b>
+          </a>
+
+        <% } %>
+
+
+        <% if(currUser) { %>
+
+          <a
+            class="nav-link"
+            href="/logout"
+          >
+            <b>Logout</b>
+          </a>
+
+        <% } %>
+
       </div>
 
     </div>
+
   </div>
+
 </nav>
+<script>
+  const searchInput = document.getElementById("searchInput");
+
+  if (searchInput) {
+    searchInput.addEventListener("search", function () {
+      if (this.value === "") {
+        window.location.href = "/listings";
+      }
+    });
+  }
+</script>

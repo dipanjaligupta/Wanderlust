@@ -11,6 +11,7 @@ const sampleListings = [
     location: "Malibu",
     country: "United States",
   },
+
   {
     title: "Modern Loft in Downtown",
     description:
@@ -23,6 +24,7 @@ const sampleListings = [
     location: "New York City",
     country: "United States",
   },
+
   {
     title: "Mountain Retreat",
     description:
@@ -35,6 +37,7 @@ const sampleListings = [
     location: "Aspen",
     country: "United States",
   },
+
   {
     title: "Historic Villa in Tuscany",
     description:
@@ -47,6 +50,7 @@ const sampleListings = [
     location: "Florence",
     country: "Italy",
   },
+
   {
     title: "Secluded Treehouse Getaway",
     description:
@@ -59,6 +63,7 @@ const sampleListings = [
     location: "Portland",
     country: "United States",
   },
+
   {
     title: "Beachfront Paradise",
     description:
@@ -71,6 +76,7 @@ const sampleListings = [
     location: "Cancun",
     country: "Mexico",
   },
+
   {
     title: "Rustic Cabin by the Lake",
     description:
@@ -83,6 +89,7 @@ const sampleListings = [
     location: "Lake Tahoe",
     country: "United States",
   },
+
   {
     title: "Luxury Penthouse with City Views",
     description:
@@ -95,6 +102,7 @@ const sampleListings = [
     location: "Los Angeles",
     country: "United States",
   },
+
   {
     title: "Ski-In/Ski-Out Chalet",
     description:
@@ -107,6 +115,7 @@ const sampleListings = [
     location: "Verbier",
     country: "Switzerland",
   },
+
   {
     title: "Safari Lodge in the Serengeti",
     description:
@@ -119,6 +128,7 @@ const sampleListings = [
     location: "Serengeti National Park",
     country: "Tanzania",
   },
+
   {
     title: "Historic Canal House",
     description:
@@ -131,6 +141,7 @@ const sampleListings = [
     location: "Amsterdam",
     country: "Netherlands",
   },
+
   {
     title: "Private Island Retreat",
     description:
@@ -143,6 +154,7 @@ const sampleListings = [
     location: "Fiji",
     country: "Fiji",
   },
+
   {
     title: "Charming Cottage in the Cotswolds",
     description:
@@ -155,6 +167,7 @@ const sampleListings = [
     location: "Cotswolds",
     country: "United Kingdom",
   },
+
   {
     title: "Historic Brownstone in Boston",
     description:
@@ -167,6 +180,7 @@ const sampleListings = [
     location: "Boston",
     country: "United States",
   },
+
   {
     title: "Beachfront Bungalow in Bali",
     description:
@@ -179,6 +193,7 @@ const sampleListings = [
     location: "Bali",
     country: "Indonesia",
   },
+
   {
     title: "Mountain View Cabin in Banff",
     description:
@@ -191,6 +206,7 @@ const sampleListings = [
     location: "Banff",
     country: "Canada",
   },
+
   {
     title: "Art Deco Apartment in Miami",
     description:
@@ -203,6 +219,7 @@ const sampleListings = [
     location: "Miami",
     country: "United States",
   },
+
   {
     title: "Tropical Villa in Phuket",
     description:
@@ -215,6 +232,7 @@ const sampleListings = [
     location: "Phuket",
     country: "Thailand",
   },
+
   {
     title: "Historic Castle in Scotland",
     description:
@@ -227,6 +245,7 @@ const sampleListings = [
     location: "Scottish Highlands",
     country: "United Kingdom",
   },
+
   {
     title: "Desert Oasis in Dubai",
     description:
@@ -239,6 +258,7 @@ const sampleListings = [
     location: "Dubai",
     country: "United Arab Emirates",
   },
+
   {
     title: "Rustic Log Cabin in Montana",
     description:
@@ -251,6 +271,7 @@ const sampleListings = [
     location: "Montana",
     country: "United States",
   },
+
   {
     title: "Beachfront Villa in Greece",
     description:
@@ -263,6 +284,7 @@ const sampleListings = [
     location: "Mykonos",
     country: "Greece",
   },
+
   {
     title: "Eco-Friendly Treehouse Retreat",
     description:
@@ -275,6 +297,7 @@ const sampleListings = [
     location: "Costa Rica",
     country: "Costa Rica",
   },
+
   {
     title: "Historic Cottage in Charleston",
     description:
@@ -287,6 +310,7 @@ const sampleListings = [
     location: "Charleston",
     country: "United States",
   },
+
   {
     title: "Modern Apartment in Tokyo",
     description:
@@ -299,6 +323,7 @@ const sampleListings = [
     location: "Tokyo",
     country: "Japan",
   },
+
   {
     title: "Lakefront Cabin in New Hampshire",
     description:
@@ -311,6 +336,7 @@ const sampleListings = [
     location: "New Hampshire",
     country: "United States",
   },
+
   {
     title: "Luxury Villa in the Maldives",
     description:
@@ -323,6 +349,7 @@ const sampleListings = [
     location: "Maldives",
     country: "Maldives",
   },
+
   {
     title: "Ski Chalet in Aspen",
     description:
@@ -335,6 +362,7 @@ const sampleListings = [
     location: "Aspen",
     country: "United States",
   },
+
   {
     title: "Secluded Beach House in Costa Rica",
     description:
@@ -349,4 +377,174 @@ const sampleListings = [
   },
 ];
 
-module.exports = { data: sampleListings };
+
+// ================= CATEGORY DATA =================
+
+const categoryMap = {
+
+  "Cozy Beachfront Cottage": [
+    "Trending",
+    "Amazing Pools"
+  ],
+
+  "Modern Loft in Downtown": [
+    "Iconic Cities",
+    "Rooms"
+  ],
+
+  "Mountain Retreat": [
+    "Trending",
+    "Mountains",
+    "Camping"
+  ],
+
+  "Historic Villa in Tuscany": [
+    "Iconic Cities",
+    "Castles"
+  ],
+
+  "Secluded Treehouse Getaway": [
+    "Trending",
+    "Camping"
+  ],
+
+  "Beachfront Paradise": [
+    "Trending",
+    "Amazing Pools"
+  ],
+
+  "Rustic Cabin by the Lake": [
+    "Mountains",
+    "Camping"
+  ],
+
+  "Luxury Penthouse with City Views": [
+    "Trending",
+    "Iconic Cities",
+    "Rooms"
+  ],
+
+  "Ski-In/Ski-Out Chalet": [
+    "Mountains",
+    "Arctic"
+  ],
+
+  "Safari Lodge in the Serengeti": [
+    "Trending",
+    "Camping",
+    "Farms"
+  ],
+
+  "Historic Canal House": [
+    "Iconic Cities",
+    "Rooms"
+  ],
+
+  "Private Island Retreat": [
+    "Trending",
+    "Amazing Pools"
+  ],
+
+  "Charming Cottage in the Cotswolds": [
+    "Farms",
+    "Rooms"
+  ],
+
+  "Historic Brownstone in Boston": [
+    "Iconic Cities",
+    "Castles"
+  ],
+
+  "Beachfront Bungalow in Bali": [
+    "Trending",
+    "Amazing Pools"
+  ],
+
+  "Mountain View Cabin in Banff": [
+    "Mountains",
+    "Camping"
+  ],
+
+  "Art Deco Apartment in Miami": [
+    "Iconic Cities",
+    "Rooms"
+  ],
+
+  "Tropical Villa in Phuket": [
+    "Trending",
+    "Amazing Pools"
+  ],
+
+  "Historic Castle in Scotland": [
+    "Castles",
+    "Mountains"
+  ],
+
+  "Desert Oasis in Dubai": [
+    "Trending",
+    "Amazing Pools"
+  ],
+
+  "Rustic Log Cabin in Montana": [
+    "Mountains",
+    "Camping"
+  ],
+
+  "Beachfront Villa in Greece": [
+    "Trending",
+    "Amazing Pools"
+  ],
+
+  "Eco-Friendly Treehouse Retreat": [
+    "Trending",
+    "Camping",
+    "Farms"
+  ],
+
+  "Historic Cottage in Charleston": [
+    "Iconic Cities",
+    "Castles"
+  ],
+
+  "Modern Apartment in Tokyo": [
+    "Iconic Cities",
+    "Rooms"
+  ],
+
+  "Lakefront Cabin in New Hampshire": [
+    "Mountains",
+    "Camping"
+  ],
+
+  "Luxury Villa in the Maldives": [
+    "Trending",
+    "Amazing Pools"
+  ],
+
+  "Ski Chalet in Aspen": [
+    "Mountains",
+    "Arctic"
+  ],
+
+  "Secluded Beach House in Costa Rica": [
+    "Trending",
+    "Amazing Pools",
+    "Camping"
+  ]
+
+};
+
+
+// Add categories to listings
+
+sampleListings.forEach((listing) => {
+
+  listing.categories =
+    categoryMap[listing.title] || [];
+
+});
+
+
+module.exports = {
+  data: sampleListings
+};

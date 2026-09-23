@@ -1,9 +1,7 @@
 const express = require("express");
-
 const router = express.Router();
 
-const wrapAsync =
-  require("../utils/wrapAsync.js");
+const wrapAsync = require("../utils/wrapAsync.js");
 
 const {
   isLoggedIn,
@@ -14,15 +12,13 @@ const {
 const listingController =
   require("../controllers/listings.js");
 
-const multer =
-  require("multer");
+const multer = require("multer");
 
 const {
   storage
 } = require("../cloudConfig.js");
 
-const upload =
-  multer({ storage });
+const upload = multer({ storage });
 
 
 // ================= LISTINGS =================
@@ -30,14 +26,12 @@ const upload =
 router
   .route("/")
 
-  // INDEX
   .get(
     wrapAsync(
       listingController.index
     )
   )
 
-  // CREATE
   .post(
     isLoggedIn,
 
@@ -69,14 +63,12 @@ router.get(
 router
   .route("/:id")
 
-  // SHOW
   .get(
     wrapAsync(
       listingController.showListing
     )
   )
 
-  // UPDATE
   .put(
     isLoggedIn,
 
@@ -93,7 +85,6 @@ router
     )
   )
 
-  // DELETE
   .delete(
     isLoggedIn,
 

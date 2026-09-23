@@ -55,7 +55,7 @@
 
       <a
         href="/listings/<%= listing._id %>/edit"
-        class="btn btn-dark"
+        class="btn edit-btn"
       >
         Edit
       </a>
@@ -65,7 +65,7 @@
         action="/listings/<%= listing._id %>?_method=DELETE"
       >
 
-        <button class="btn btn-dark">
+        <button class="btn delete-btn">
           Delete
         </button>
 
@@ -285,7 +285,7 @@
               action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
             >
 
-              <button class="btn btn-sm btn-dark">
+              <button class="btn btn-sm delete-btn">
                 Delete
               </button>
 

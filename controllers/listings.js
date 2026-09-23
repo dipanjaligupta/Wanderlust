@@ -5,13 +5,90 @@ const Listing = require("../models/listing");
 
 module.exports.index = async (req, res) => {
 
-  const allListings = await Listing.find({});
+  const { search, category } = req.query;
+
+  let filter = {};
+
+
+  // ================= SEARCH FILTER =================
+
+  if (search) {
+
+    filter.$or = [
+
+      // Search by title
+      {
+        title: {
+          $regex: search,
+          $options: "i"
+        }
+      },
+
+      // Search by location
+      {
+        location: {
+          $regex: search,
+          $options: "i"
+        }
+      },
+
+      // Search by country
+      {
+        country: {
+          $regex: search,
+          $options: "i"
+        }
+      }
+
+    ];
+
+  }
+
+
+  // ================= CATEGORY FILTER =================
+
+  if (category) {
+
+    filter.categories = category;
+
+  }
+
+
+  // ================= GET LISTINGS =================
+
+  const allListings = await Listing.find(filter);
+
+
+  // ================= CONSOLE =================
+
+  console.log("Search:", search);
+
+  console.log("Category:", category);
+
+  console.log("Results:", allListings.length);
+
+  console.log(
+    allListings.map(listing => ({
+      title: listing.title,
+      location: listing.location,
+      country: listing.country,
+      categories: listing.categories
+    }))
+  );
+
+
+  // ================= RENDER =================
 
   res.render("listings/index.ejs", {
-    allListings
+
+    allListings,
+    search,
+    category
+
   });
 
 };
+
 
 
 // ================= NEW FORM =================
@@ -23,6 +100,7 @@ module.exports.renderNewForm = (req, res) => {
 };
 
 
+
 // ================= SHOW LISTING =================
 
 module.exports.showListing = async (req, res) => {
@@ -30,14 +108,12 @@ module.exports.showListing = async (req, res) => {
   const { id } = req.params;
 
   const listing = await Listing.findById(id)
-
     .populate({
       path: "reviews",
       populate: {
-        path: "author",
-      },
+        path: "author"
+      }
     })
-
     .populate("owner");
 
 
@@ -53,13 +129,12 @@ module.exports.showListing = async (req, res) => {
   }
 
 
-  console.log(listing);
-
   res.render("listings/show.ejs", {
     listing
   });
 
 };
+
 
 
 // ================= CREATE LISTING =================
@@ -68,23 +143,19 @@ module.exports.createListing = async (req, res, next) => {
 
   try {
 
-    // Image
     const url = req.file.path;
 
     const filename = req.file.filename;
 
 
-    // Create listing
     const newListing = new Listing(
       req.body.listing
     );
 
 
-    // Owner
     newListing.owner = req.user._id;
 
 
-    // Image
     newListing.image = {
       url: url,
       filename: filename
@@ -93,34 +164,22 @@ module.exports.createListing = async (req, res, next) => {
 
     // ================= LOCATION =================
 
-    const location =
-      req.body.listing.location;
+    const location = req.body.listing.location;
 
 
-    console.log(
-      "Searching location:",
-      location
-    );
-
-
-    // OpenStreetMap Nominatim API
     const response = await fetch(
-
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`,
-
       {
         headers: {
           "User-Agent": "Wanderlust-App"
         }
       }
-
     );
 
 
     const data = await response.json();
 
 
-    // Location not found
     if (data.length === 0) {
 
       req.flash(
@@ -128,30 +187,21 @@ module.exports.createListing = async (req, res, next) => {
         "Location not found!"
       );
 
-      return res.redirect(
-        "/listings/new"
-      );
+      return res.redirect("/listings/new");
 
     }
 
 
-    // ================= COORDINATES =================
+    const latitude = Number(data[0].lat);
 
-    const latitude =
-      Number(data[0].lat);
-
-    const longitude =
-      Number(data[0].lon);
+    const longitude = Number(data[0].lon);
 
 
-    // Save geometry
+    // ================= MAP COORDINATES =================
+
     newListing.geometry = {
 
       type: "Point",
-
-      // IMPORTANT:
-      // longitude first
-      // latitude second
 
       coordinates: [
         longitude,
@@ -159,32 +209,6 @@ module.exports.createListing = async (req, res, next) => {
       ]
 
     };
-
-
-    // ================= CONSOLE =================
-
-    console.log(
-      "Location:",
-      location
-    );
-
-    console.log(
-      "Longitude:",
-      longitude
-    );
-
-    console.log(
-      "Latitude:",
-      latitude
-    );
-
-    console.log(
-      "Coordinates:",
-      [
-        longitude,
-        latitude
-      ]
-    );
 
 
     // ================= SAVE =================
@@ -200,9 +224,8 @@ module.exports.createListing = async (req, res, next) => {
 
     res.redirect("/listings");
 
-  }
 
-  catch (error) {
+  } catch (error) {
 
     console.log(
       "Geocoding Error:",
@@ -216,18 +239,15 @@ module.exports.createListing = async (req, res, next) => {
 };
 
 
+
 // ================= EDIT FORM =================
 
-module.exports.renderEditForm = async (
-  req,
-  res
-) => {
+module.exports.renderEditForm = async (req, res) => {
 
   const { id } = req.params;
 
 
-  const listing =
-    await Listing.findById(id);
+  const listing = await Listing.findById(id);
 
 
   if (!listing) {
@@ -242,15 +262,13 @@ module.exports.renderEditForm = async (
   }
 
 
-  let originalImageUrl =
-    listing.image.url;
+  let originalImageUrl = listing.image.url;
 
 
-  originalImageUrl =
-    originalImageUrl.replace(
-      "/upload",
-      "/upload/h_200,w_250"
-    );
+  originalImageUrl = originalImageUrl.replace(
+    "/upload",
+    "/upload/h_200,w_250"
+  );
 
 
   res.render(
@@ -264,34 +282,27 @@ module.exports.renderEditForm = async (
 };
 
 
+
 // ================= UPDATE LISTING =================
 
-module.exports.updateListing = async (
-  req,
-  res
-) => {
+module.exports.updateListing = async (req, res) => {
 
   const { id } = req.params;
 
 
-  const listing =
-    await Listing.findByIdAndUpdate(
-      id,
-      {
-        ...req.body.listing
-      }
-    );
+  const listing = await Listing.findByIdAndUpdate(
+    id,
+    {
+      ...req.body.listing
+    }
+  );
 
 
-  if (
-    typeof req.file !== "undefined"
-  ) {
+  if (typeof req.file !== "undefined") {
 
-    const url =
-      req.file.path;
+    const url = req.file.path;
 
-    const filename =
-      req.file.filename;
+    const filename = req.file.filename;
 
 
     listing.image = {
@@ -311,19 +322,15 @@ module.exports.updateListing = async (
   );
 
 
-  res.redirect(
-    `/listings/${id}`
-  );
+  res.redirect(`/listings/${id}`);
 
 };
 
 
+
 // ================= DELETE LISTING =================
 
-module.exports.destroyListing = async (
-  req,
-  res
-) => {
+module.exports.destroyListing = async (req, res) => {
 
   const { id } = req.params;
 
@@ -338,9 +345,7 @@ module.exports.destroyListing = async (
   );
 
 
-  console.log(
-    deletedListing
-  );
+  console.log(deletedListing);
 
 
   res.redirect("/listings");

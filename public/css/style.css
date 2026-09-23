@@ -17,6 +17,12 @@ body{
 .edit-btn{
     background-color: #fe424d !important;
     border: none !important;
+    color:white !important;
+}
+.delete-btn {
+    background-color: #fe424d !important;
+    border: none !important;
+    color: white !important;
 }
 /*edit page end */
 /*show page */
