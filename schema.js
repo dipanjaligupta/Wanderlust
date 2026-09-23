@@ -34,8 +34,6 @@ module.exports.listingSchema = Joi.object({
     }).required()
 
 });
-
-
 // Review validation
 module.exports.reviewSchema = Joi.object({
 
