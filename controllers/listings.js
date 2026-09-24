@@ -1,109 +1,113 @@
 const Listing = require("../models/listing");
 
-// ================= INDEX =================
+// =====================================================
+// INDEX - SHOW ALL LISTINGS / SEARCH / CATEGORY
+// =====================================================
 
-module.exports.index = async (req, res) => {
-  const { search, category } = req.query;
+module.exports.index = async (req, res, next) => {
+  try {
+    const { search, category } = req.query;
 
-  let filter = {};
+    let filter = {};
 
-  // ================= SEARCH FILTER =================
+    // ================= SEARCH =================
 
-  if (search) {
-    filter.$or = [
-      {
-        title: {
-          $regex: search,
-          $options: "i"
-        }
-      },
-      {
-        location: {
-          $regex: search,
-          $options: "i"
-        }
-      },
-      {
-        country: {
-          $regex: search,
-          $options: "i"
-        }
-      }
-    ];
+    if (search && search.trim() !== "") {
+      const searchRegex = new RegExp(search.trim(), "i");
+
+      filter.$or = [
+        { title: searchRegex },
+        { location: searchRegex },
+        { country: searchRegex }
+      ];
+    }
+
+    // ================= CATEGORY =================
+    // Your schema uses "categories"
+
+    if (category && category.trim() !== "") {
+      filter.categories = category;
+    }
+
+    // ================= GET LISTINGS =================
+
+    const allListings = await Listing.find(filter);
+
+    console.log("Search:", search);
+    console.log("Category:", category);
+    console.log("Results:", allListings.length);
+
+    console.log(
+      allListings.map((listing) => ({
+        title: listing.title,
+        location: listing.location,
+        country: listing.country,
+        categories: listing.categories
+      }))
+    );
+
+    // ================= RENDER =================
+
+    res.render("listings/index.ejs", {
+      allListings,
+      search,
+      category
+    });
+
+  } catch (error) {
+    next(error);
   }
-
-  // ================= CATEGORY FILTER =================
-
-  if (category) {
-    filter.categories = category;
-  }
-
-  // ================= GET LISTINGS =================
-
-  const allListings = await Listing.find(filter);
-
-  // ================= CONSOLE =================
-
-  console.log("Search:", search);
-  console.log("Category:", category);
-  console.log("Results:", allListings.length);
-
-  console.log(
-    allListings.map(listing => ({
-      title: listing.title,
-      location: listing.location,
-      country: listing.country,
-      categories: listing.categories
-    }))
-  );
-
-  // ================= RENDER =================
-
-  res.render("listings/index.ejs", {
-    allListings,
-    search,
-    category
-  });
 };
 
 
-// ================= NEW FORM =================
+// =====================================================
+// NEW FORM
+// =====================================================
 
 module.exports.renderNewForm = (req, res) => {
   res.render("listings/new.ejs");
 };
 
 
-// ================= SHOW LISTING =================
+// =====================================================
+// SHOW LISTING
+// =====================================================
 
-module.exports.showListing = async (req, res) => {
-  const { id } = req.params;
+module.exports.showListing = async (req, res, next) => {
+  try {
+    const { id } = req.params;
 
-  const listing = await Listing.findById(id)
-    .populate({
-      path: "reviews",
-      populate: {
-        path: "author"
-      }
-    })
-    .populate("owner");
+    const listing = await Listing.findById(id)
+      .populate({
+        path: "reviews",
+        populate: {
+          path: "author"
+        }
+      })
+      .populate("owner");
 
-  if (!listing) {
-    req.flash(
-      "error",
-      "Listing you requested for does not exist"
-    );
+    if (!listing) {
+      req.flash(
+        "error",
+        "Listing you requested for does not exist"
+      );
 
-    return res.redirect("/listings");
+      return res.redirect("/listings");
+    }
+
+    res.render("listings/show.ejs", {
+      listing
+    });
+
+  } catch (error) {
+    next(error);
   }
-
-  res.render("listings/show.ejs", {
-    listing
-  });
 };
 
 
-// ================= CREATE LISTING =================
+// =====================================================
+// CREATE LISTING
+// =====================================================
 
 module.exports.createListing = async (req, res, next) => {
   try {
@@ -122,6 +126,21 @@ module.exports.createListing = async (req, res, next) => {
     const url = req.file.path;
     const filename = req.file.filename;
 
+
+    // ================= LOCATION CHECK =================
+
+    const location = req.body.listing.location;
+
+    if (!location || location.trim() === "") {
+      req.flash(
+        "error",
+        "Please enter a location."
+      );
+
+      return res.redirect("/listings/new");
+    }
+
+
     // ================= CREATE LISTING =================
 
     const newListing = new Listing(
@@ -135,104 +154,257 @@ module.exports.createListing = async (req, res, next) => {
       filename: filename
     };
 
-    // ================= LOCATION =================
 
-    const location = req.body.listing.location;
+    // =================================================
+    // NOMINATIM GEOCODING
+    // =================================================
 
-    if (!location) {
-      req.flash(
-        "error",
-        "Please enter a location."
-      );
+    const searchLocation = location.trim();
 
-      return res.redirect("/listings/new");
-    }
+    const nominatimURL =
+      "https://nominatim.openstreetmap.org/search" +
+      `?format=jsonv2` +
+      `&q=${encodeURIComponent(searchLocation)}` +
+      `&limit=1`;
 
-    // ================= NOMINATIM API =================
+
+    console.log(
+      "Geocoding location:",
+      searchLocation
+    );
+
+
+    // ================= REQUEST =================
 
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`,
+      nominatimURL,
       {
+        method: "GET",
+
         headers: {
-          "User-Agent": "Wanderlust-App/1.0"
+          "User-Agent":
+            "Wanderlust-App/1.0",
+          "Accept":
+            "application/json",
+          "Accept-Language":
+            "en"
         }
       }
     );
 
-    // Check HTTP response
+
+    // ================= RESPONSE TEXT =================
+
+    const responseText =
+      await response.text();
+
+
+    // =================================================
+    // 403 ERROR
+    // =================================================
+
+    if (response.status === 403) {
+
+      console.log(
+        "Nominatim 403 response:"
+      );
+
+      console.log(
+        responseText.substring(0, 1000)
+      );
+
+      req.flash(
+        "error",
+        "Location service rejected the request. Please try again later."
+      );
+
+      return res.redirect(
+        "/listings/new"
+      );
+    }
+
+
+    // =================================================
+    // 429 ERROR
+    // =================================================
+
+    if (response.status === 429) {
+
+      console.log(
+        "Nominatim rate limit reached."
+      );
+
+      req.flash(
+        "error",
+        "Too many location requests. Please wait and try again."
+      );
+
+      return res.redirect(
+        "/listings/new"
+      );
+    }
+
+
+    // =================================================
+    // OTHER HTTP ERRORS
+    // =================================================
 
     if (!response.ok) {
+
+      console.log(
+        "Nominatim status:",
+        response.status
+      );
+
+      console.log(
+        "Nominatim response:",
+        responseText.substring(0, 1000)
+      );
+
       throw new Error(
         `Nominatim request failed: ${response.status}`
       );
     }
 
-    // Check response type
 
-    const contentType =
-      response.headers.get("content-type") || "";
+    // =================================================
+    // PARSE JSON
+    // =================================================
 
-    if (!contentType.includes("application/json")) {
+    let data;
 
-      const text = await response.text();
+    try {
+
+      data = JSON.parse(
+        responseText
+      );
+
+    } catch (error) {
 
       console.log(
-        "Nominatim returned:",
-        text.substring(0, 300)
+        "Nominatim returned invalid JSON:"
+      );
+
+      console.log(
+        responseText.substring(0, 1000)
       );
 
       throw new Error(
-        "Nominatim did not return JSON"
+        "Nominatim did not return valid JSON."
       );
     }
 
-    // Convert response to JSON
 
-    const data = await response.json();
+    // =================================================
+    // LOCATION NOT FOUND
+    // =================================================
 
-    // ================= LOCATION NOT FOUND =================
-
-    if (data.length === 0) {
+    if (
+      !data ||
+      data.length === 0
+    ) {
 
       req.flash(
         "error",
-        "Location not found!"
+        "Location not found! Please enter a valid location."
       );
 
-      return res.redirect("/listings/new");
+      return res.redirect(
+        "/listings/new"
+      );
     }
 
-    // ================= COORDINATES =================
 
-    const latitude = Number(data[0].lat);
-    const longitude = Number(data[0].lon);
+    // =================================================
+    // GET COORDINATES
+    // =================================================
 
-    // ================= MAP GEOMETRY =================
+    const latitude =
+      Number(data[0].lat);
+
+    const longitude =
+      Number(data[0].lon);
+
+
+    console.log(
+      "Latitude:",
+      latitude
+    );
+
+    console.log(
+      "Longitude:",
+      longitude
+    );
+
+
+    // =================================================
+    // VALIDATE COORDINATES
+    // =================================================
+
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
+
+      throw new Error(
+        "Invalid coordinates received from Nominatim."
+      );
+    }
+
+
+    // =================================================
+    // SAVE GEOJSON
+    // =================================================
+
+    // IMPORTANT:
+    // GeoJSON format:
+    // [longitude, latitude]
 
     newListing.geometry = {
       type: "Point",
+
       coordinates: [
         longitude,
         latitude
       ]
     };
 
-    // ================= SAVE =================
+
+    console.log(
+      "Map coordinates:",
+      newListing.geometry.coordinates
+    );
+
+
+    // =================================================
+    // SAVE LISTING
+    // =================================================
 
     await newListing.save();
 
-    // ================= SUCCESS =================
+
+    console.log(
+      "Listing saved successfully:",
+      newListing._id
+    );
+
+
+    // =================================================
+    // SUCCESS
+    // =================================================
 
     req.flash(
       "success",
       "New Listing created!"
     );
 
-    res.redirect("/listings");
+    res.redirect(
+      `/listings/${newListing._id}`
+    );
 
   } catch (error) {
 
-    console.log(
+    console.error(
       "Create Listing Error:",
       error
     );
@@ -242,89 +414,314 @@ module.exports.createListing = async (req, res, next) => {
 };
 
 
-// ================= EDIT FORM =================
+// =====================================================
+// EDIT FORM
+// =====================================================
 
-module.exports.renderEditForm = async (req, res) => {
-  const { id } = req.params;
+module.exports.renderEditForm = async (req, res, next) => {
+  try {
 
-  const listing = await Listing.findById(id);
+    const { id } = req.params;
 
-  if (!listing) {
-    req.flash(
-      "error",
-      "Listing you requested for does not exist"
+    const listing =
+      await Listing.findById(id);
+
+
+    if (!listing) {
+
+      req.flash(
+        "error",
+        "Listing you requested for does not exist"
+      );
+
+      return res.redirect(
+        "/listings"
+      );
+    }
+
+
+    // ================= IMAGE URL =================
+
+    let originalImageUrl =
+      listing.image?.url || "";
+
+
+    if (originalImageUrl) {
+
+      originalImageUrl =
+        originalImageUrl.replace(
+          "/upload",
+          "/upload/h_200,w_250"
+        );
+    }
+
+
+    // ================= RENDER =================
+
+    res.render(
+      "listings/edit.ejs",
+      {
+        listing,
+        originalImageUrl
+      }
     );
 
-    return res.redirect("/listings");
+  } catch (error) {
+    next(error);
   }
-
-  let originalImageUrl = listing.image.url;
-
-  originalImageUrl = originalImageUrl.replace(
-    "/upload",
-    "/upload/h_200,w_250"
-  );
-
-  res.render(
-    "listings/edit.ejs",
-    {
-      listing,
-      originalImageUrl
-    }
-  );
 };
 
 
-// ================= UPDATE LISTING =================
+// =====================================================
+// UPDATE LISTING
+// =====================================================
 
-module.exports.updateListing = async (req, res) => {
+module.exports.updateListing = async (req, res, next) => {
+  try {
 
-  const { id } = req.params;
+    const { id } = req.params;
 
-  const listing = await Listing.findByIdAndUpdate(
-    id,
-    {
-      ...req.body.listing
+
+    // =================================================
+    // UPDATE BASIC DETAILS
+    // =================================================
+
+    const listing =
+      await Listing.findByIdAndUpdate(
+        id,
+        {
+          ...req.body.listing
+        },
+        {
+          new: true,
+          runValidators: true
+        }
+      );
+
+
+    if (!listing) {
+
+      req.flash(
+        "error",
+        "Listing you requested for does not exist"
+      );
+
+      return res.redirect(
+        "/listings"
+      );
     }
-  );
 
-  if (typeof req.file !== "undefined") {
 
-    const url = req.file.path;
-    const filename = req.file.filename;
+    // =================================================
+    // UPDATE IMAGE
+    // =================================================
 
-    listing.image = {
-      url,
-      filename
-    };
+    if (req.file) {
 
-    await listing.save();
+      const url =
+        req.file.path;
+
+      const filename =
+        req.file.filename;
+
+
+      listing.image = {
+        url,
+        filename
+      };
+
+      await listing.save();
+    }
+
+
+    // =================================================
+    // UPDATE LOCATION / GEOMETRY
+    // =================================================
+
+    const newLocation =
+      req.body.listing.location;
+
+    if (
+      newLocation &&
+      newLocation.trim() !== ""
+    ) {
+
+      try {
+
+        const searchLocation =
+          newLocation.trim();
+
+
+        const nominatimURL =
+          "https://nominatim.openstreetmap.org/search" +
+          `?format=jsonv2` +
+          `&q=${encodeURIComponent(searchLocation)}` +
+          `&limit=1`;
+
+
+        console.log(
+          "Updating coordinates for:",
+          searchLocation
+        );
+
+
+        const response =
+          await fetch(
+            nominatimURL,
+            {
+              method: "GET",
+
+              headers: {
+                "User-Agent":
+                  "Wanderlust-App/1.0",
+
+                "Accept":
+                  "application/json",
+
+                "Accept-Language":
+                  "en"
+              }
+            }
+          );
+
+
+        if (response.ok) {
+
+          const data =
+            await response.json();
+
+
+          if (
+            data &&
+            data.length > 0
+          ) {
+
+            const latitude =
+              Number(data[0].lat);
+
+            const longitude =
+              Number(data[0].lon);
+
+
+            if (
+              Number.isFinite(latitude) &&
+              Number.isFinite(longitude)
+            ) {
+
+              listing.geometry = {
+                type: "Point",
+
+                coordinates: [
+                  longitude,
+                  latitude
+                ]
+              };
+
+
+              await listing.save();
+
+
+              console.log(
+                "Updated coordinates:",
+                listing.geometry.coordinates
+              );
+            }
+          }
+
+        } else {
+
+          console.log(
+            "Nominatim update failed:",
+            response.status
+          );
+        }
+
+      } catch (geoError) {
+
+        console.log(
+          "Geocoding update error:",
+          geoError.message
+        );
+      }
+    }
+
+
+    // =================================================
+    // SUCCESS
+    // =================================================
+
+    req.flash(
+      "success",
+      "Listing updated successfully!"
+    );
+
+
+    res.redirect(
+      `/listings/${id}`
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Update Listing Error:",
+      error
+    );
+
+    next(error);
   }
-
-  req.flash(
-    "success",
-    "Listing updated"
-  );
-
-  res.redirect(`/listings/${id}`);
 };
 
 
-// ================= DELETE LISTING =================
+// =====================================================
+// DELETE LISTING
+// =====================================================
 
-module.exports.destroyListing = async (req, res) => {
+module.exports.destroyListing = async (req, res, next) => {
+  try {
 
-  const { id } = req.params;
+    const { id } = req.params;
 
-  const deletedListing =
-    await Listing.findByIdAndDelete(id);
 
-  req.flash(
-    "success",
-    "Listing Deleted!"
-  );
+    const deletedListing =
+      await Listing.findByIdAndDelete(id);
 
-  console.log(deletedListing);
 
-  res.redirect("/listings");
+    if (!deletedListing) {
+
+      req.flash(
+        "error",
+        "Listing not found"
+      );
+
+      return res.redirect(
+        "/listings"
+      );
+    }
+
+
+    console.log(
+      "Deleted Listing:",
+      deletedListing._id
+    );
+
+
+    req.flash(
+      "success",
+      "Listing Deleted!"
+    );
+
+
+    res.redirect(
+      "/listings"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Delete Listing Error:",
+      error
+    );
+
+    next(error);
+  }
 };
